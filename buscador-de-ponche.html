@@ -122,10 +122,10 @@
     <div class="container">
 <div id="clock"></div>
 
-        <h1>Buscar Colaborador</h1>
+        <h1>Playa Palmera</h1>
         <label for="searchId">Ingrese el ID del colaborador:</label>
         <input type="text" id="searchId" placeholder="ID del colaborador">
-        <button id="searchButton">Buscar</button>
+        <button id="searchButton">Ponchar</button>
         <div class="result" id="result"></div>
     </div>
 <script type="module">
@@ -225,12 +225,12 @@
                 // Limpiar los resultados después de 2 segundos
                 setTimeout(() => {
                     resultDiv.innerHTML = ''; // Limpiar los resultados
-                }, 2000);
+                }, 5000);
 
                 // Limpiar el campo de búsqueda después de 2 segundos
                 setTimeout(() => {
                     searchIdInput.value = ''; // Limpiar el campo de entrada
-                }, 2000);
+                }, 5000);
             } else {
                 resultDiv.innerHTML = '<p class="error">No se encontró ningún colaborador con ese ID.</p>';
             }
