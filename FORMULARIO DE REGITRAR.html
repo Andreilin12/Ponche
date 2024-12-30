@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registrar Colaboradores</title>
+<style>
+    /* Estilo general del cuerpo de la página */
+    body {
+        font-family: 'Roboto', sans-serif;
+        background: linear-gradient(135deg, #2c3e50, #2c3e50);
+        margin: 0;
+        padding: 0;
+        color: #ffffff;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+    }
+
+    /* Contenedor principal */
+    .container {
+        width: 100%;
+        max-width: 900px;
+        padding: 40px;
+        background: rgba(0, 0, 0, 0.6);
+        border-radius: 10px;
+        box-shadow: 0 8px 20px rgba(255, 255, 255);
+        backdrop-filter: blur(15px);
+    }
+
+    /* Título */
+    h1 {
+        font-size: 2.2rem;
+        text-align: center;
+        color: #fff;
+        margin-bottom: 30px;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        text-shadow: 0 0 8px rgba(255, 255, 255);
+    }
+
+    /* Estilo del formulario */
+    form {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 25px;
+    }
+
+    /* Estilo de los grupos de entrada */
+    .input-group {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+    }
+
+    label {
+        font-size: 1.1rem;
+        margin-bottom: 8px;
+        color: #ffffff;
+        font-weight: bold;
+    }
+
+    input {
+        padding: 12px 15px;
+        font-size: 1.1rem;
+        background-color: transparent;
+        color: #ffffff;
+        border: 2px solid #15a086;
+        border-radius: 6px;
+        outline: none;
+        transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    input:focus {
+        border-color: #16e086;
+        box-shadow: 0 0 8px rgba(255, 255, 255);
+    }
+
+    /* Botón de acción */
+    button {
+        grid-column: span 2; /* Hace que el botón ocupe toda la fila */
+        padding: 14px;
+        background: linear-gradient(135deg, #15a086, #16e086);
+        border: none;
+        border-radius: 8px;
+        color: white;
+        font-size: 1.1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 5px 10px rgba(0, 255, 255, 0.4);
+    }
+
+    button:hover {
+        background: linear-gradient(135deg, #16e086, #15a086);
+        transform: translateY(-4px);
+        box-shadow: 0 8px 15px rgba(0, 255, 255, 0.6);
+    }
+
+    /* Mensaje de éxito */
+    .success {
+        color: #fff;
+        text-align: center;
+        margin-top: 20px;
+        font-size: 1.2rem;
+    }
+
+    /* Mensaje de error */
+    .error {
+        color: #FF4444;
+        text-align: center;
+        margin-top: 20px;
+        font-size: 1.2rem;
+    }
+</style>
+
+</head>
+<body>
+    <div class="container">
+        <h1>Registrar Colaborador</h1>
+        <form id="collaboratorForm">
+            <label for="name">Nombre del Colaborador:</label>
+            <input type="text" id="name" required>
+
+            <label for="id">ID:</label>
+            <input type="text" id="id" required>
+
+            <label for="position">Posición:</label>
+            <input type="text" id="position" required>
+
+            <label for="department">Departamento:</label>
+            <input type="text" id="department" required>
+
+            <label for="workArea">Área de Trabajo:</label>
+            <input type="text" id="workArea" required>
+
+            <label for="supervisor">Jefe a Cargo:</label>
+            <input type="text" id="supervisor" required>
+
+            <button type="submit">Guardar Colaborador</button>
+        </form>
+        <div id="message"></div>
+    </div>
+
+    <script type="module">
+        // Import Firebase SDK
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-app.js";
+        import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-firestore.js";
+
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyBkCVuK8ovujWGJI5OTeOSqmednaXhnHsA",
+            authDomain: "motomovie-peliculas.firebaseapp.com",
+            projectId: "motomovie-peliculas",
+            storageBucket: "motomovie-peliculas.firebasestorage.app",
+            messagingSenderId: "1027127345040",
+            appId: "1:1027127345040:web:0e8c8a86de87ab443cbd15",
+            measurementId: "G-WY4EYNR19P"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // Reference to the form
+        const form = document.getElementById('collaboratorForm');
+        const messageDiv = document.getElementById('message');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const name = document.getElementById('name').value;
+            const id = document.getElementById('id').value;
+            const position = document.getElementById('position').value;
+            const department = document.getElementById('department').value;
+            const workArea = document.getElementById('workArea').value;
+            const supervisor = document.getElementById('supervisor').value;
+
+            try {
+                await addDoc(collection(db, 'collaborators'), {
+                    name,
+                    id,
+                    position,
+                    department,
+                    workArea,
+                    supervisor
+                });
+
+                messageDiv.innerHTML = '<p class="success">Colaborador registrado exitosamente.</p>';
+                form.reset();
+            } catch (error) {
+                messageDiv.innerHTML = `<p class="error">Error al registrar colaborador: ${error.message}</p>`;
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Buscar Colaborador</title>
+<style>
+    /* Estilo para el cuerpo de la página */
+    body {
+        background: linear-gradient(45deg, #1a1a1a, #333333);
+        color: #fff;
+        font-family: 'Roboto', sans-serif;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        flex-direction: column;
+    }
+
+    /* Estilo para el reloj */
+    #clock {
+        font-size: 2rem;
+        background: rgba(0, 0, 0, 0.6);
+        padding: 15px 30px;
+        border-radius: 10px;
+        box-shadow: 0 0 20px rgba(0, 255, 255, 0.6), 0 0 40px rgba(0, 255, 255, 0.3);
+        color: #00FFFF;
+        text-align: center;
+        margin-bottom: 30px;
+        transition: all 0.3s ease;
+    }
+
+    #clock p {
+        margin: 0;
+    }
+
+    #clock strong {
+        font-size: 1.5rem;
+    }
+
+    /* Estilo para los resultados */
+    #result {
+        background: rgba(0, 0, 0, 0.6);
+        border-radius: 10px;
+        padding: 20px;
+        width: 80%;
+        max-width: 600px;
+        margin: 20px;
+        text-align: center;
+        box-shadow: 0 0 20px rgba(0, 255, 255, 0.6), 0 0 40px rgba(0, 255, 255, 0.3);
+        transition: all 0.3s ease;
+    }
+
+    #result h2 {
+        font-size: 2rem;
+        color: #00FFFF;
+        margin-bottom: 15px;
+    }
+
+    #result p {
+        font-size: 1.2rem;
+        color: #b0e0e6;
+        margin: 10px 0;
+    }
+
+    /* Estilo para los errores */
+    .error {
+        color: #ff4d4d;
+        font-size: 1.2rem;
+    }
+
+    /* Estilo para el botón de búsqueda */
+    #searchButton {
+        background: linear-gradient(45deg, #15a086, #16e086);
+        border: none;
+        color: white;
+        padding: 15px 30px;
+        font-size: 1.2rem;
+        cursor: pointer;
+        border-radius: 5px;
+        transition: all 0.3s ease;
+        margin-top: 10px;
+    }
+
+    #searchButton:hover {
+        background: linear-gradient(45deg, #16e086, #15a086);
+        box-shadow: 0 0 10px rgba(0, 255, 255, 0.7);
+    }
+
+    /* Estilo para el campo de búsqueda */
+    #searchId {
+        padding: 10px;
+        font-size: 1.2rem;
+        border-radius: 5px;
+        border: 2px solid #00ffff;
+        background-color: transparent;
+        color: #fff;
+        margin-top: 10px;
+    }
+
+    #searchId::placeholder {
+        color: #00ffff;
+    }
+
+    /* Efecto de transición suave para los resultados */
+    #result {
+        opacity: 0;
+        animation: fadeIn 1s forwards;
+    }
+
+    @keyframes fadeIn {
+        to {
+            opacity: 1;
+        }
+    }
+</style>
+
+</head>
+<body>
+    <div class="container">
+<div id="clock"></div>
+
+        <h1>Buscar Colaborador</h1>
+        <label for="searchId">Ingrese el ID del colaborador:</label>
+        <input type="text" id="searchId" placeholder="ID del colaborador">
+        <button id="searchButton">Buscar</button>
+        <div class="result" id="result"></div>
+    </div>
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-app.js";
+    import { getFirestore, collection, query, where, getDocs, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyBkCVuK8ovujWGJI5OTeOSqmednaXhnHsA",
+        authDomain: "motomovie-peliculas.firebaseapp.com",
+        projectId: "motomovie-peliculas",
+        storageBucket: "motomovie-peliculas.firebasestorage.app",
+        messagingSenderId: "1027127345040",
+        appId: "1:1027127345040:web:0e8c8a86de87ab443cbd15",
+        measurementId: "G-WY4EYNR19P"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const searchIdInput = document.getElementById("searchId");
+    const searchButton = document.getElementById("searchButton");
+    const resultDiv = document.getElementById("result");
+    const clockDiv = document.getElementById("clock");  // Agregado para el reloj
+
+    // Función para obtener el historial de búsqueda de un colaborador
+    const getSearchHistory = async (searchId) => {
+        const q = query(collection(db, "searchHistory"), where("id", "==", searchId));
+        const querySnapshot = await getDocs(q);
+        return querySnapshot;
+    };
+
+    searchButton.addEventListener("click", async () => {
+        const searchId = searchIdInput.value.trim();
+
+        if (!searchId) {
+            resultDiv.innerHTML = '<p class="error">Por favor, ingrese un ID.</p>';
+            return;
+        }
+
+        const now = new Date();
+        const today = new Date().toLocaleDateString();
+
+        const querySnapshot = await getSearchHistory(searchId);
+
+        let lastSearch = null;
+        let countToday = 0;
+        querySnapshot.forEach((doc) => {
+            const data = doc.data();
+            if (data.date === today) {
+                countToday++;
+            }
+            if (lastSearch === null || data.timestamp > lastSearch.timestamp) {
+                lastSearch = data;
+            }
+        });
+
+        if (lastSearch && now - lastSearch.timestamp < 5 * 60 * 1000) {
+            resultDiv.innerHTML = '<p class="error">Debes esperar 5 minutos antes de buscar el mismo colaborador nuevamente.</p>';
+            return;
+        }
+
+        if (countToday >= 2) {
+            resultDiv.innerHTML = '<p class="error">Este turno ya parece haber sido registrado o está marcado como completo. Si crees que hay un error, por favor, comunícalo a Recursos Humanos para su revisión.</p>';
+            return;
+        }
+
+        try {
+            const q = query(collection(db, "collaborators"), where("id", "==", searchId));
+            const collaboratorSnapshot = await getDocs(q);
+
+            if (!collaboratorSnapshot.empty) {
+                let resultHTML = "<h2>Colaborador Encontrado:</h2>";
+                collaboratorSnapshot.forEach((doc) => {
+                    const data = doc.data();
+                    resultHTML += `
+                        <p><strong>Nombre:</strong> ${data.name}</p>
+                        <p><strong>Posición:</strong> ${data.position}</p>
+                        <p><strong>Departamento:</strong> ${data.department}</p>
+                        <p><strong>Área de Trabajo:</strong> ${data.workArea}</p>
+                        <p><strong>Jefe a Cargo:</strong> ${data.supervisor}</p>
+                    `;
+
+                    // Determinar si es entrada o salida
+                    const action = countToday === 0 ? "entrada" : "salida";
+
+                    // Guardar el historial de búsqueda
+                    addDoc(collection(db, "searchHistory"), {
+                        id: searchId,
+                        action: action,
+                        timestamp: serverTimestamp(),
+                        date: today
+                    });
+
+                    resultDiv.innerHTML = resultHTML;
+                });
+
+                // Limpiar los resultados después de 2 segundos
+                setTimeout(() => {
+                    resultDiv.innerHTML = ''; // Limpiar los resultados
+                }, 2000);
+
+                // Limpiar el campo de búsqueda después de 2 segundos
+                setTimeout(() => {
+                    searchIdInput.value = ''; // Limpiar el campo de entrada
+                }, 2000);
+            } else {
+                resultDiv.innerHTML = '<p class="error">No se encontró ningún colaborador con ese ID.</p>';
+            }
+        } catch (error) {
+            resultDiv.innerHTML = `<p class="error">Error al buscar colaborador: ${error.message}</p>`;
+        }
+    });
+
+    // Función para actualizar la hora y fecha en tiempo real
+    const updateClock = () => {
+        const now = new Date();
+        const hours = now.getHours().toString().padStart(2, '0');
+        const minutes = now.getMinutes().toString().padStart(2, '0');
+        const seconds = now.getSeconds().toString().padStart(2, '0');
+        const day = now.toLocaleDateString('es-ES', { weekday: 'long' });
+        const date = now.toLocaleDateString();
+
+        // Mostrar la hora y fecha en tiempo real
+        clockDiv.innerHTML = `<p><strong>${day}, ${date}</strong></p><p>${hours}:${minutes}:${seconds}</p>`;
+    };
+
+    // Llamar a la función cada segundo para actualizar la hora
+    setInterval(updateClock, 1000);
+</script>
+
+
+</body>
+</html>
